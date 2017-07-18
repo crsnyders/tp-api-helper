@@ -1,7 +1,7 @@
 let request = require("request")
 import * as $ from "jquery"
 
-export type Entity =
+export type EntityType =
   | "UserStories"
   | "Bugs"
   | "Epics"
@@ -13,10 +13,15 @@ export type Entity =
   | "Generals"
   | "Projects"
   | "EntityStates"
+
+export class Entity {
+  ResourceType: EntityType
+  EntityType: any
+}
 export class Results {
   Next?: string
   Prev?: string
-  Items: Array<any>
+  Items: Array<Entity>
 }
 
 export class TargetProcess {
@@ -62,7 +67,7 @@ export class TargetProcess {
     return new DeleteEntity(this, entity, id)
   }
 
-  execute(): Promise<Results> {
+  execute(): Promise<Results | Entity> {
     return new Promise((resolve, reject) => {
       this.options.callback = (error: any, response: any, body: any) => {
         if (error) {

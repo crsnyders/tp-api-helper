@@ -15,6 +15,11 @@ var __extends = (undefined && undefined.__extends) || (function () {
     };
 })();
 var request = require("request");
+var Entity = (function () {
+    function Entity() {
+    }
+    return Entity;
+}());
 var Results = (function () {
     function Results() {
     }
@@ -262,6 +267,7 @@ var DeleteEntity = (function (_super) {
     return DeleteEntity;
 }(Operation));
 
+exports.Entity = Entity;
 exports.Results = Results;
 exports.TargetProcess = TargetProcess;
 exports.Operation = Operation;

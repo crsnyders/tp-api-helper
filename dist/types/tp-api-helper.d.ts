@@ -1,8 +1,12 @@
-export declare type Entity = "UserStories" | "Bugs" | "Epics" | "Features" | "Tasks" | "Requesters" | "Users" | "Assignables" | "Generals" | "Projects" | "EntityStates";
+export declare type EntityType = "UserStories" | "Bugs" | "Epics" | "Features" | "Tasks" | "Requesters" | "Users" | "Assignables" | "Generals" | "Projects" | "EntityStates";
+export declare class Entity {
+    ResourceType: EntityType;
+    EntityType: any;
+}
 export declare class Results {
     Next?: string;
     Prev?: string;
-    Items: Array<any>;
+    Items: Array<Entity>;
 }
 export declare class TargetProcess {
     domain: string;
@@ -26,7 +30,7 @@ export declare class TargetProcess {
     Delete an entity id required
     */
     delete(entity: Entity, id: number): DeleteEntity;
-    execute(): Promise<Results>;
+    execute(): Promise<Results | Entity>;
 }
 export declare class Operation extends TargetProcess {
     constructor(targetProcess: TargetProcess, entity: Entity, method: string, id?: number);

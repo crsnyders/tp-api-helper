@@ -9,6 +9,11 @@ var __extends = (undefined && undefined.__extends) || (function () {
     };
 })();
 var request = require("request");
+var Entity = (function () {
+    function Entity() {
+    }
+    return Entity;
+}());
 var Results = (function () {
     function Results() {
     }
@@ -256,5 +261,5 @@ var DeleteEntity = (function (_super) {
     return DeleteEntity;
 }(Operation));
 
-export { Results, TargetProcess, Operation, GetEntity, PostEntity, DeleteEntity };
+export { Entity, Results, TargetProcess, Operation, GetEntity, PostEntity, DeleteEntity };
 //# sourceMappingURL=tp-api-helper.es5.js.map
