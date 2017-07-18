@@ -1,4 +1,4 @@
-export declare type EntityType = "UserStories" | "Bugs" | "Epics" | "Features" | "Tasks" | "Requesters" | "Users" | "Assignables" | "Generals" | "Projects" | "EntityStates";
+export declare type EntityType = "UserStories" | "Bugs" | "Builds" | "Epics" | "Features" | "Tasks" | "Requesters" | "Users" | "Assignables" | "Generals" | "Projects" | "EntityStates";
 export declare class Entity {
     ResourceType: EntityType;
     EntityType: any;
@@ -92,7 +92,7 @@ export declare class GetEntity extends Operation {
 }
 export declare class PostEntity extends Operation {
     constructor(targetProcess: TargetProcess, entity: Entity, id?: number);
-    withbody<T>(value: T): this;
+    withBody<T>(value: T): this;
     /**
     Response format (JSON or XML)
     */

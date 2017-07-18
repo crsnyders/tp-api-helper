@@ -205,7 +205,7 @@ var PostEntity = (function (_super) {
     function PostEntity(targetProcess, entity, id) {
         return _super.call(this, targetProcess, entity, "POST", id) || this;
     }
-    PostEntity.prototype.withbody = function (value) {
+    PostEntity.prototype.withBody = function (value) {
         this.options.json = value;
         return this;
     };
