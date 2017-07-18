@@ -5,6 +5,6 @@ coverage
 *.log
 .vscode
 .idea
-dist
+dist/docs
 compiled
 .awcache
