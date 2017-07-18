@@ -4,6 +4,7 @@ import * as $ from "jquery"
 export type EntityType =
   | "UserStories"
   | "Bugs"
+  | "Builds"
   | "Epics"
   | "Features"
   | "Tasks"
@@ -214,7 +215,7 @@ export class PostEntity extends Operation {
     super(targetProcess, entity, "POST", id)
   }
 
-  withbody<T>(value: T) {
+  withBody<T>(value: T) {
     this.options.json = value
     return this
   }
