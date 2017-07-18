@@ -1,9 +1,5 @@
-//import * as request from 'request';
 let request = require("request")
-
-//require('request-debug')(request);
 import * as $ from "jquery"
-import { URL } from "url"
 
 export type Entity =
   | "UserStories"

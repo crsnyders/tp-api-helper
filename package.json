@@ -106,7 +106,6 @@
     "@types/jquery": "^3.2.8",
     "@types/request": "^0.0.47",
     "jquery": "^3.2.1",
-    "request": "^2.81.0",
-    "request-debug": "^0.2.0"
+    "request": "^2.81.0"
   }
 }
