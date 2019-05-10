@@ -9,49 +9,48 @@ var __extends = (undefined && undefined.__extends) || (function () {
     };
 })();
 var request = require("request");
-var Entity = (function () {
-    function Entity() {
-    }
-    return Entity;
-}());
-var Results = (function () {
-    function Results() {
-    }
-    return Results;
-}());
 var TargetProcess = (function () {
-    function TargetProcess(domain, protocol, version, username, password) {
+    function TargetProcess(domain, protocol, version, auth) {
         this.domain = domain;
         this.protocol = protocol;
         this.version = version;
-        this.username = username;
-        this.password = password;
+        this.auth = auth;
         this.options = {
             json: true,
-            qs: { token: undefined },
-            headers: { Authorization: undefined }
+            qs: { token: undefined, access_token: undefined },
+            headers: { authorization: undefined },
+            url: undefined
         };
         this.options.url =
             this.protocol + "://" + this.domain + "/api/v" + this.version;
-        if (this.username && this.password) {
-            this.options.qs.token = new Buffer(this.username + ":" + this.password).toString("base64");
+        if (auth &&
+            this.auth.username &&
+            this.auth.password) {
+            this.options.headers.authorization = new Buffer(this.auth.username +
+                ":" +
+                this.auth.password).toString("base64");
+        }
+        else if (auth &&
+            (auth.access_token || auth.token)) {
+            this.options.qs.token = auth.token;
+            this.options.qs.access_token = auth.access_token;
         }
     }
     /**
-    Fetch an entity
-    */
+     * Fetch an entity
+     */
     TargetProcess.prototype.get = function (entity, id) {
         return new GetEntity(this, entity, id);
     };
     /**
-    Create or update an entity
-    */
+     * Create or update an entity
+     */
     TargetProcess.prototype.post = function (entity, id) {
         return new PostEntity(this, entity, id);
     };
     /**
-    Delete an entity id required
-    */
+     * Delete an entity id required
+     */
     TargetProcess.prototype.delete = function (entity, id) {
         return new DeleteEntity(this, entity, id);
     };
@@ -66,7 +65,7 @@ var TargetProcess = (function () {
                     resolve(body);
                 }
             };
-            new request.Request(_this.options);
+            return new request.Request(_this.options);
         });
     };
     return TargetProcess;
@@ -74,36 +73,43 @@ var TargetProcess = (function () {
 var Operation = (function (_super) {
     __extends(Operation, _super);
     function Operation(targetProcess, entity, method, id) {
-        var _this = _super.call(this, targetProcess.domain, targetProcess.protocol, targetProcess.version, targetProcess.username, targetProcess.password) || this;
+        var _this = _super.call(this, targetProcess.domain, targetProcess.protocol, targetProcess.version, targetProcess.auth) || this;
         _this.options.entity = entity;
         _this.options.url = _this.options.url + "/" + _this.options.entity;
         if (id) {
-            _this.options.entityid = id;
-            _this.options.url = _this.options.url + "/" + _this.options.entityid;
+            _this.options.entityId = id;
+            _this.options.url = _this.options.url + "/" + _this.options.entityId;
         }
         _this.options.method = method;
-        _this.autherization("Basic " + _this.options.qs.token);
-        _this.token(_this.options.qs.token);
+        if (_this.options.headers.authorization) {
+            _this.basicAuthorization("Basic " + _this.options.headers.authorization);
+        }
+        else if (_this.options.qs.token) {
+            _this.token(_this.options.qs.token);
+        }
+        else if (_this.options.qs.access_token) {
+            _this.access_token(_this.options.qs.access_token);
+        }
         return _this;
     }
     /**
-  Token, which was generated at Personal Details page (Access Tokens tab). Other options: token or basic authentication
-  */
+     * Token, which was generated at Personal Details page (Access Tokens tab). Other options: token or basic authentication
+     */
     Operation.prototype.access_token = function (value) {
         this.options.qs.access_token = value;
         return this;
     };
     /**
-    Token, which was generated at /api/v1/Authentication. Other options: access_token or basic authentication
-    */
+     * Token, which was generated at /api/v1/Authentication. Other options: access_token or basic authentication
+     */
     Operation.prototype.token = function (value) {
         this.options.qs.token = value;
         return this;
     };
     /**
-    Basic authentication as a a Base64 encoded values for login:password. Other options: access_token or token
-    */
-    Operation.prototype.autherization = function (value) {
+     * Basic authentication as a a Base64 encoded values for login:password. Other options: access_token or token
+     */
+    Operation.prototype.basicAuthorization = function (value) {
         this.options.headers["Authorization"] = value;
         return this;
     };
@@ -115,15 +121,15 @@ var GetEntity = (function (_super) {
         return _super.call(this, targetProcess, entity, "GET", id) || this;
     }
     /**
-    Filtering by fields and nested fields. Example: EntityState.IsInitial eq 'true'
-    */
+     * Filtering by fields and nested fields. Example: EntityState.IsInitial eq 'true'
+     */
     GetEntity.prototype.where = function (value) {
         this.options.qs.where = value;
         return this;
     };
     /**
-    You can explicitly specify attributes that you want to have in the response. It is possible to include Fields, Collections and Nested Entities (with inner Fields). Example: [Name, Iteration[Name]]. Cannot be used together with 'exclude' param.
-    */
+     * You can explicitly specify attributes that you want to have in the response. It is possible to include Fields, Collections and Nested Entities (with inner Fields). Example: [Name, Iteration[Name]]. Cannot be used together with 'exclude' param.
+     */
     GetEntity.prototype.include = function () {
         var value = [];
         for (var _i = 0; _i < arguments.length; _i++) {
@@ -136,8 +142,8 @@ var GetEntity = (function (_super) {
         return this;
     };
     /**
-    You can explicitly specify attributes that you do not want to have in the response. Cannot be used together with 'include' param.
-    */
+     * You can explicitly specify attributes that you do not want to have in the response. Cannot be used together with 'include' param.
+     */
     GetEntity.prototype.exclude = function () {
         var value = [];
         for (var _i = 0; _i < arguments.length; _i++) {
@@ -150,50 +156,50 @@ var GetEntity = (function (_super) {
         return this;
     };
     /**
-    Get more information about Entity in a single request. For example, you can retrieve Tasks and Bugs count: [Bugs-Count,Tasks-Count]
-    */
+     * Get more information about Entity in a single request. For example, you can retrieve Tasks and Bugs count: [Bugs-Count,Tasks-Count]
+     */
     GetEntity.prototype.append = function (value) {
         this.options.qs.append = value;
         return this;
     };
     /**
-    This parameter controls paging. Defines how many items will be skipped
-    */
+     * This parameter controls paging. Defines how many items will be skipped
+     */
     GetEntity.prototype.skip = function (value) {
         this.options.qs.skip = value;
         return this;
     };
     /**
-    This parameter controls paging. Defines how many items will be returned. Limit is 1000
-    */
+     * This parameter controls paging. Defines how many items will be returned. Limit is 1000
+     */
     GetEntity.prototype.take = function (value) {
         this.options.qs.take = value;
         return this;
     };
     /**
-    This parameter controls paging for inner collections. Defines how many items will be returned. Limit is 1000 (in total, not per one item)
-    */
-    GetEntity.prototype.innertake = function (value) {
-        this.options.qs.innertake = value;
+     * This parameter controls paging for inner collections. Defines how many items will be returned. Limit is 1000 (in total, not per one item)
+     */
+    GetEntity.prototype.innerTake = function (value) {
+        this.options.qs.innerTake = value;
         return this;
     };
     /**
-    Ordering by fields and nested fields
-    */
-    GetEntity.prototype.ordreby = function (value) {
-        this.options.qs.ordreby = value;
+     * Ordering by fields and nested fields
+     */
+    GetEntity.prototype.orderBy = function (value) {
+        this.options.qs.orderBy = value;
         return this;
     };
     /**
-    Ordering by fields and nested fields
-    */
-    GetEntity.prototype.orderbydesc = function (value) {
-        this.options.qs.qs.orderbydesc = value;
+     * Ordering by fields and nested fields
+     */
+    GetEntity.prototype.orderByDesc = function (value) {
+        this.options.qs.orderByDesc = value;
         return this;
     };
     /**
-    Response format (JSON or XML)
-    */
+     * Response format (JSON or XML)
+     */
     GetEntity.prototype.format = function (value) {
         this.options.qs.format = value;
         return this;
@@ -210,15 +216,15 @@ var PostEntity = (function (_super) {
         return this;
     };
     /**
-    Response format (JSON or XML)
-    */
+     * Response format (JSON or XML)
+     */
     PostEntity.prototype.format = function (value) {
         this.options.qs.format = value;
         return this;
     };
     /**
-  You can explicitly specify attributes of newly created or updated Story that you want to have in the response. It is possible to include Fields, Collections and Nested Entities (with inner Fields). Example: [Name, Iteration[Name]]. Cannot be used together with 'exclude' param.
-  */
+     * You can explicitly specify attributes of newly created or updated Story that you want to have in the response. It is possible to include Fields, Collections and Nested Entities (with inner Fields). Example: [Name, Iteration[Name]]. Cannot be used together with 'exclude' param.
+     */
     PostEntity.prototype.include = function () {
         var value = [];
         for (var _i = 0; _i < arguments.length; _i++) {
@@ -231,8 +237,8 @@ var PostEntity = (function (_super) {
         return this;
     };
     /**
-    You can explicitly specify attributes of newly created or updated Story that you do not want to have in the response. Cannot be used together with 'include' param.
-    */
+     * You can explicitly specify attributes of newly created or updated Story that you do not want to have in the response. Cannot be used together with 'include' param.
+     */
     PostEntity.prototype.exclude = function () {
         var value = [];
         for (var _i = 0; _i < arguments.length; _i++) {
@@ -245,8 +251,8 @@ var PostEntity = (function (_super) {
         return this;
     };
     /**
-  Specify in which format (JSON or XML) and chartset (in case of not ASCII characters) you're sending the body. E.g.: application/xml or application/json; charset=UTF-8
-  */
+     * Specify in which format (JSON or XML) and charset (in case of not ASCII characters) you're sending the body. E.g.: application/xml or application/json; charset=UTF-8
+     */
     PostEntity.prototype.content_type = function (value) {
         this.options.headers["Content-type"] = value;
         return this;
@@ -261,5 +267,5 @@ var DeleteEntity = (function (_super) {
     return DeleteEntity;
 }(Operation));
 
-export { Entity, Results, TargetProcess, Operation, GetEntity, PostEntity, DeleteEntity };
+export { TargetProcess, Operation, GetEntity, PostEntity, DeleteEntity };
 //# sourceMappingURL=tp-api-helper.es5.js.map

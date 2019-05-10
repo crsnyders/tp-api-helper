@@ -1,25 +1,66 @@
-///<reference path="../node_modules/@types/jest/index.d.ts"/>
-import { TargetProcess } from "../src/tp-api-helper"
+import { TargetProcess, Results } from "../src/tp-api-helper"
+import * as _ from "lodash"
 
-/**
- * Dummy test
- */
+let serviceToken = ""
+let instanceUrl = "md5.tpondemand.com"
+
 describe("Dummy test", () => {
   let t: TargetProcess
 
   beforeAll(() => {
-    t = new TargetProcess("md5.tpondemand.com", "https", 1)
+    t = new TargetProcess(instanceUrl, "https", 1, { token: serviceToken })
   })
-  it("works if true is truthy", () => {
+
+  it("Test get with skip, take, format, orderby and where", () => {
     t
       .get("Assignables")
+      .exclude("Id")
       .include("Id", "Name", "EntityState", "EntityState[NextStates]")
+      .skip(2)
+      .take(5)
+      .format("XML")
+      .orderBy("Id")
+      .where("Id gt 1")
       .execute()
       .then(result => {
-        expect(result.Items.length).toBeTruthy()
+        if (_.get(result, "Items")) {
+          expect((result as Results).Items.length).toBeTruthy()
+        }
       })
       .catch(err => {
         console.log(JSON.stringify(err))
       })
+  })
+  it("Test get with take, orderbydesc, appen", () => {
+    t
+      .get("Assignables")
+      .include("Id")
+      .exclude("Id")
+      .take(1)
+      .orderByDesc("Name")
+      .append("Tasks-Count")
+      .execute()
+      .then(result => {
+        if (_.get(result, "Items")) {
+          expect((result as Results).Items.length).toEqual(1)
+        }
+      })
+      .catch(err => {
+        console.log(JSON.stringify(err))
+      })
+  })
+
+  it("test post with include, exclude, format content_type, with body", () => {
+    t
+      .post("Assignables")
+      .exclude("Id")
+      .include("Id")
+      .exclude("Id")
+      .include("Id")
+      .format("JSON")
+      .content_type("JSON")
+      .withBody("test")
+
+    expect(t.options).toBeTruthy()
   })
 })
