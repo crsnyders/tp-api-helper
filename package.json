@@ -73,7 +73,7 @@
   },
   "devDependencies": {
     "@types/jest": "^20.0.4",
-    "@types/node": "^8.0.0",
+    "@types/node": "^12.0.4",
     "colors": "^1.1.2",
     "commitizen": "^2.9.6",
     "coveralls": "^2.13.1",
@@ -105,6 +105,7 @@
   },
   "dependencies": {
     "@types/jquery": "^3.2.8",
+    "@types/request": "^2.48.1",
     "jquery": "^3.2.1",
     "request": "^2.81.0"
   }

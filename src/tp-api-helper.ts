@@ -1,4 +1,5 @@
-let request = require("request")
+import { Request } from "request"
+import * as fs from "fs"
 
 export type EntityType =
   | "UserStories"
@@ -80,6 +81,12 @@ export class TargetProcess {
     return new PostEntity(this, entity, id)
   }
   /**
+   * Create or update an entity
+   */
+  postFile() {
+    return new PostFile(this)
+  }
+  /**
    * Delete an entity id required
    */
   delete(entity: EntityType, id: number) {
@@ -95,7 +102,7 @@ export class TargetProcess {
           resolve(body)
         }
       }
-      return new request.Request(this.options)
+      return new Request(this.options)
     })
   }
 }
@@ -103,7 +110,7 @@ export class TargetProcess {
 export class Operation extends TargetProcess {
   constructor(
     targetProcess: TargetProcess,
-    entity: EntityType,
+    entity: EntityType | string,
     method: string,
     id?: number
   ) {
@@ -279,6 +286,29 @@ export class PostEntity extends Operation {
   }
 }
 
+export class PostFile extends Operation {
+  constructor(targetProcess: TargetProcess) {
+    super(targetProcess, "UploadFile.ashx", "POST")
+  }
+
+  withFiles(...paths: Array<String>) {
+    if (!this.options.formData) {
+      this.options.formData = {}
+    }
+
+    this.options.formData["attachments"] = paths.map((path: string) => {
+      return fs.createReadStream(path)
+    })
+    return this
+  }
+
+  withTicketID(id: number) {
+    if (!this.options.formData) {
+      this.options.formData = {}
+    }
+    this.options.formData["generalId"] = id
+  }
+}
 export class DeleteEntity extends Operation {
   constructor(targetProcess: TargetProcess, entity: EntityType, id: number) {
     super(targetProcess, entity, "DELETE", id)

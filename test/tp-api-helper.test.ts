@@ -1,4 +1,4 @@
-import { TargetProcess, Results } from "../src/tp-api-helper"
+import { TargetProcess, Results, PostFile } from "../src/tp-api-helper"
 import * as _ from "lodash"
 
 let serviceToken = ""
@@ -62,5 +62,18 @@ describe("Dummy test", () => {
       .withBody("test")
 
     expect(t.options).toBeTruthy()
+  })
+
+  it("Upload a file to TP", () => {
+    t.postFile().withFiles("./testfile.txt").withTicketID(49397)
+    t
+      .execute()
+      .then(result => {
+        console.log(result)
+        expect(result).toBeTruthy()
+      })
+      .catch(err => {
+        console.console(err)
+      })
   })
 })
