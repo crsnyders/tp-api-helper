@@ -1,16 +1,19 @@
-var __extends = (undefined && undefined.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
-var request = require("request");
-var TargetProcess = (function () {
-    function TargetProcess(domain, protocol, version, auth) {
+import fs from 'fs';
+
+function unwrapExports (x) {
+	return x && x.__esModule ? x['default'] : x;
+}
+
+function createCommonjsModule(fn, module) {
+	return module = { exports: {} }, fn(module, module.exports), module.exports;
+}
+
+var tpApiHelper = createCommonjsModule(function (module, exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+
+class TargetProcess {
+    constructor(domain, protocol, version, auth) {
         this.domain = domain;
         this.protocol = protocol;
         this.version = version;
@@ -21,8 +24,12 @@ var TargetProcess = (function () {
             headers: { authorization: undefined },
             url: undefined
         };
-        this.options.url =
-            this.protocol + "://" + this.domain + "/api/v" + this.version;
+        this.options.url = () => {
+            if (!this.options.isAPI) {
+                return this.protocol + "://" + this.domain;
+            }
+            return this.protocol + "://" + this.domain + "/api/v" + this.version;
+        };
         if (auth &&
             this.auth.username &&
             this.auth.password) {
@@ -39,25 +46,30 @@ var TargetProcess = (function () {
     /**
      * Fetch an entity
      */
-    TargetProcess.prototype.get = function (entity, id) {
+    get(entity, id) {
         return new GetEntity(this, entity, id);
-    };
+    }
     /**
      * Create or update an entity
      */
-    TargetProcess.prototype.post = function (entity, id) {
+    post(entity, id) {
         return new PostEntity(this, entity, id);
-    };
+    }
+    /**
+     * Create or update an entity
+     */
+    postFile() {
+        return new PostFile(this);
+    }
     /**
      * Delete an entity id required
      */
-    TargetProcess.prototype.delete = function (entity, id) {
+    delete(entity, id) {
         return new DeleteEntity(this, entity, id);
-    };
-    TargetProcess.prototype.execute = function () {
-        var _this = this;
-        return new Promise(function (resolve, reject) {
-            _this.options.callback = function (error, response, body) {
+    }
+    execute() {
+        return new Promise((resolve, reject) => {
+            this.options.callback = (error, response, body) => {
                 if (error) {
                     reject(new Error(error));
                 }
@@ -65,207 +77,219 @@ var TargetProcess = (function () {
                     resolve(body);
                 }
             };
-            return new request.Request(_this.options);
+            return new Request(this.options);
         });
-    };
-    return TargetProcess;
-}());
-var Operation = (function (_super) {
-    __extends(Operation, _super);
-    function Operation(targetProcess, entity, method, id) {
-        var _this = _super.call(this, targetProcess.domain, targetProcess.protocol, targetProcess.version, targetProcess.auth) || this;
-        _this.options.entity = entity;
-        _this.options.url = _this.options.url + "/" + _this.options.entity;
+    }
+}
+exports.TargetProcess = TargetProcess;
+class Operation extends TargetProcess {
+    constructor(targetProcess, entity, method, id) {
+        super(targetProcess.domain, targetProcess.protocol, targetProcess.version, targetProcess.auth);
+        this.options.entity = entity;
+        this.options.url = this.options.url() + "/" + this.options.entity;
         if (id) {
-            _this.options.entityId = id;
-            _this.options.url = _this.options.url + "/" + _this.options.entityId;
+            this.options.entityId = id;
+            this.options.url = this.options.url() + "/" + this.options.entityId;
         }
-        _this.options.method = method;
-        if (_this.options.headers.authorization) {
-            _this.basicAuthorization("Basic " + _this.options.headers.authorization);
+        this.options.method = method;
+        if (this.options.headers.authorization) {
+            this.basicAuthorization("Basic " + this.options.headers.authorization);
         }
-        else if (_this.options.qs.token) {
-            _this.token(_this.options.qs.token);
+        else if (this.options.qs.token) {
+            this.token(this.options.qs.token);
         }
-        else if (_this.options.qs.access_token) {
-            _this.access_token(_this.options.qs.access_token);
+        else if (this.options.qs.access_token) {
+            this.access_token(this.options.qs.access_token);
         }
-        return _this;
     }
     /**
      * Token, which was generated at Personal Details page (Access Tokens tab). Other options: token or basic authentication
      */
-    Operation.prototype.access_token = function (value) {
+    access_token(value) {
         this.options.qs.access_token = value;
         return this;
-    };
+    }
     /**
      * Token, which was generated at /api/v1/Authentication. Other options: access_token or basic authentication
      */
-    Operation.prototype.token = function (value) {
+    token(value) {
         this.options.qs.token = value;
         return this;
-    };
+    }
     /**
      * Basic authentication as a a Base64 encoded values for login:password. Other options: access_token or token
      */
-    Operation.prototype.basicAuthorization = function (value) {
+    basicAuthorization(value) {
         this.options.headers["Authorization"] = value;
         return this;
-    };
-    return Operation;
-}(TargetProcess));
-var GetEntity = (function (_super) {
-    __extends(GetEntity, _super);
-    function GetEntity(targetProcess, entity, id) {
-        return _super.call(this, targetProcess, entity, "GET", id) || this;
+    }
+}
+exports.Operation = Operation;
+class GetEntity extends Operation {
+    constructor(targetProcess, entity, id) {
+        super(targetProcess, entity, "GET", id);
     }
     /**
      * Filtering by fields and nested fields. Example: EntityState.IsInitial eq 'true'
      */
-    GetEntity.prototype.where = function (value) {
+    where(value) {
         this.options.qs.where = value;
         return this;
-    };
+    }
     /**
      * You can explicitly specify attributes that you want to have in the response. It is possible to include Fields, Collections and Nested Entities (with inner Fields). Example: [Name, Iteration[Name]]. Cannot be used together with 'exclude' param.
      */
-    GetEntity.prototype.include = function () {
-        var value = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            value[_i] = arguments[_i];
-        }
+    include(...value) {
         if (this.options.qs.exclude) {
             this.options.qs.exclude = undefined;
         }
         this.options.qs.include = "[" + value.toString() + "]";
         return this;
-    };
+    }
     /**
      * You can explicitly specify attributes that you do not want to have in the response. Cannot be used together with 'include' param.
      */
-    GetEntity.prototype.exclude = function () {
-        var value = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            value[_i] = arguments[_i];
-        }
+    exclude(...value) {
         if (this.options.qs.include) {
             this.options.qs.include = undefined;
         }
         this.options.qs.exclude = "[" + value.toString() + "]";
         return this;
-    };
+    }
     /**
      * Get more information about Entity in a single request. For example, you can retrieve Tasks and Bugs count: [Bugs-Count,Tasks-Count]
      */
-    GetEntity.prototype.append = function (value) {
+    append(value) {
         this.options.qs.append = value;
         return this;
-    };
+    }
     /**
      * This parameter controls paging. Defines how many items will be skipped
      */
-    GetEntity.prototype.skip = function (value) {
+    skip(value) {
         this.options.qs.skip = value;
         return this;
-    };
+    }
     /**
      * This parameter controls paging. Defines how many items will be returned. Limit is 1000
      */
-    GetEntity.prototype.take = function (value) {
+    take(value) {
         this.options.qs.take = value;
         return this;
-    };
+    }
     /**
      * This parameter controls paging for inner collections. Defines how many items will be returned. Limit is 1000 (in total, not per one item)
      */
-    GetEntity.prototype.innerTake = function (value) {
+    innerTake(value) {
         this.options.qs.innerTake = value;
         return this;
-    };
+    }
     /**
      * Ordering by fields and nested fields
      */
-    GetEntity.prototype.orderBy = function (value) {
+    orderBy(value) {
         this.options.qs.orderBy = value;
         return this;
-    };
+    }
     /**
      * Ordering by fields and nested fields
      */
-    GetEntity.prototype.orderByDesc = function (value) {
+    orderByDesc(value) {
         this.options.qs.orderByDesc = value;
         return this;
-    };
+    }
     /**
      * Response format (JSON or XML)
      */
-    GetEntity.prototype.format = function (value) {
+    format(value) {
         this.options.qs.format = value;
         return this;
-    };
-    return GetEntity;
-}(Operation));
-var PostEntity = (function (_super) {
-    __extends(PostEntity, _super);
-    function PostEntity(targetProcess, entity, id) {
-        return _super.call(this, targetProcess, entity, "POST", id) || this;
     }
-    PostEntity.prototype.withBody = function (value) {
+}
+exports.GetEntity = GetEntity;
+class PostEntity extends Operation {
+    constructor(targetProcess, entity, id) {
+        super(targetProcess, entity, "POST", id);
+    }
+    withBody(value) {
         this.options.json = value;
         return this;
-    };
+    }
     /**
      * Response format (JSON or XML)
      */
-    PostEntity.prototype.format = function (value) {
+    format(value) {
         this.options.qs.format = value;
         return this;
-    };
+    }
     /**
      * You can explicitly specify attributes of newly created or updated Story that you want to have in the response. It is possible to include Fields, Collections and Nested Entities (with inner Fields). Example: [Name, Iteration[Name]]. Cannot be used together with 'exclude' param.
      */
-    PostEntity.prototype.include = function () {
-        var value = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            value[_i] = arguments[_i];
-        }
+    include(...value) {
         if (this.options.qs.exclude) {
             this.options.qs.exclude = undefined;
         }
         this.options.qs.include = "[" + value.toString() + "]";
         return this;
-    };
+    }
     /**
      * You can explicitly specify attributes of newly created or updated Story that you do not want to have in the response. Cannot be used together with 'include' param.
      */
-    PostEntity.prototype.exclude = function () {
-        var value = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            value[_i] = arguments[_i];
-        }
+    exclude(...value) {
         if (this.options.qs.include) {
             this.options.qs.include = undefined;
         }
         this.options.qs.exclude = "[" + value.toString() + "]";
         return this;
-    };
+    }
     /**
      * Specify in which format (JSON or XML) and charset (in case of not ASCII characters) you're sending the body. E.g.: application/xml or application/json; charset=UTF-8
      */
-    PostEntity.prototype.content_type = function (value) {
+    content_type(value) {
         this.options.headers["Content-type"] = value;
         return this;
-    };
-    return PostEntity;
-}(Operation));
-var DeleteEntity = (function (_super) {
-    __extends(DeleteEntity, _super);
-    function DeleteEntity(targetProcess, entity, id) {
-        return _super.call(this, targetProcess, entity, "DELETE", id) || this;
     }
-    return DeleteEntity;
-}(Operation));
+}
+exports.PostEntity = PostEntity;
+class PostFile extends Operation {
+    constructor(targetProcess) {
+        super(targetProcess, "UploadFile.ashx", "POST");
+        this.options.isAPI = false;
+    }
+    withFiles(...paths) {
+        if (!this.options.formData) {
+            this.options.formData = {};
+        }
+        this.options.formData["attachments"] = paths.map((path) => {
+            return fs.createReadStream(path);
+        });
+        return this;
+    }
+    withTicketID(id) {
+        if (!this.options.formData) {
+            this.options.formData = {};
+        }
+        this.options.formData["generalId"] = id;
+        return this;
+    }
+}
+exports.PostFile = PostFile;
+class DeleteEntity extends Operation {
+    constructor(targetProcess, entity, id) {
+        super(targetProcess, entity, "DELETE", id);
+    }
+}
+exports.DeleteEntity = DeleteEntity;
 
-export { TargetProcess, Operation, GetEntity, PostEntity, DeleteEntity };
+});
+
+var tpApiHelper$1 = unwrapExports(tpApiHelper);
+var tpApiHelper_1 = tpApiHelper.TargetProcess;
+var tpApiHelper_2 = tpApiHelper.Operation;
+var tpApiHelper_3 = tpApiHelper.GetEntity;
+var tpApiHelper_4 = tpApiHelper.PostEntity;
+var tpApiHelper_5 = tpApiHelper.PostFile;
+var tpApiHelper_6 = tpApiHelper.DeleteEntity;
+
+export { tpApiHelper_1 as TargetProcess, tpApiHelper_2 as Operation, tpApiHelper_3 as GetEntity, tpApiHelper_4 as PostEntity, tpApiHelper_5 as PostFile, tpApiHelper_6 as DeleteEntity };export default tpApiHelper$1;
 //# sourceMappingURL=tp-api-helper.es5.js.map

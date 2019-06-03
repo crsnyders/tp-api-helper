@@ -1,4 +1,4 @@
-import { Request } from "request"
+var request = require("request")
 import * as fs from "fs"
 
 export type EntityType =
@@ -33,6 +33,23 @@ export interface Results {
   Items: Array<Entity>
 }
 
+export interface Attachment {
+  resourceType: "Attachment"
+  id: number
+  name: string
+  uniqueFileName: string
+  description: string
+  /**'/Date(1559577661000+0200)/' */
+  date: string
+  uri: string
+  thumbnailUri: string
+  mimeType: "text/plain"
+  size: number
+  owner: [unknown]
+  general: [unknown]
+  message: unknown
+}
+
 export class TargetProcess {
   public options: any = {
     json: true,
@@ -47,8 +64,13 @@ export class TargetProcess {
     public version: number,
     public auth: PasswordAuth | TokenAuth
   ) {
-    this.options.url =
-      this.protocol + "://" + this.domain + "/api/v" + this.version
+    this.options.url = () => {
+      if (!this.options.isAPI) {
+        return this.protocol + "://" + this.domain
+      }
+      return this.protocol + "://" + this.domain + "/api/v" + this.version
+    }
+
     if (
       auth &&
       (this.auth as PasswordAuth).username &&
@@ -102,7 +124,7 @@ export class TargetProcess {
           resolve(body)
         }
       }
-      return new Request(this.options)
+      return new request.Request(this.options)
     })
   }
 }
@@ -121,10 +143,10 @@ export class Operation extends TargetProcess {
       targetProcess.auth
     )
     this.options.entity = entity
-    this.options.url = this.options.url + "/" + this.options.entity
+    this.options.url = this.options.url() + "/" + this.options.entity
     if (id) {
       this.options.entityId = id
-      this.options.url = this.options.url + "/" + this.options.entityId
+      this.options.url = this.options.url() + "/" + this.options.entityId
     }
     this.options.method = method
 
@@ -150,7 +172,7 @@ export class Operation extends TargetProcess {
     this.options.qs.token = value
     return this
   }
-  /** 
+  /**
    * Basic authentication as a a Base64 encoded values for login:password. Other options: access_token or token
    */
   basicAuthorization(value: string): Operation {
@@ -196,7 +218,7 @@ export class GetEntity extends Operation {
     this.options.qs.append = value
     return this
   }
-  /** 
+  /**
    * This parameter controls paging. Defines how many items will be skipped
    */
   skip(value: number): GetEntity {
@@ -289,9 +311,10 @@ export class PostEntity extends Operation {
 export class PostFile extends Operation {
   constructor(targetProcess: TargetProcess) {
     super(targetProcess, "UploadFile.ashx", "POST")
+    this.options.isAPI = false
   }
 
-  withFiles(...paths: Array<String>) {
+  withFiles(...paths: Array<string>) {
     if (!this.options.formData) {
       this.options.formData = {}
     }
@@ -307,6 +330,7 @@ export class PostFile extends Operation {
       this.options.formData = {}
     }
     this.options.formData["generalId"] = id
+    return this
   }
 }
 export class DeleteEntity extends Operation {

@@ -16,6 +16,22 @@ export interface Results {
     Prev?: string;
     Items: Array<Entity>;
 }
+export interface Attachment {
+    resourceType: 'Attachment';
+    id: number;
+    name: string;
+    uniqueFileName: string;
+    description: string;
+    /**'/Date(1559577661000+0200)/' */
+    date: string;
+    uri: string;
+    thumbnailUri: string;
+    mimeType: 'text/plain';
+    size: number;
+    owner: [unknown];
+    general: [unknown];
+    message: unknown;
+}
 export declare class TargetProcess {
     domain: string;
     protocol: "http" | "https";
@@ -32,13 +48,17 @@ export declare class TargetProcess {
      */
     post(entity: EntityType, id?: number): PostEntity;
     /**
+     * Create or update an entity
+     */
+    postFile(): PostFile;
+    /**
      * Delete an entity id required
      */
     delete(entity: EntityType, id: number): DeleteEntity;
     execute(): Promise<Results | Entity>;
 }
 export declare class Operation extends TargetProcess {
-    constructor(targetProcess: TargetProcess, entity: EntityType, method: string, id?: number);
+    constructor(targetProcess: TargetProcess, entity: EntityType | string, method: string, id?: number);
     /**
      * Token, which was generated at Personal Details page (Access Tokens tab). Other options: token or basic authentication
      */
@@ -114,6 +134,11 @@ export declare class PostEntity extends Operation {
      * Specify in which format (JSON or XML) and charset (in case of not ASCII characters) you're sending the body. E.g.: application/xml or application/json; charset=UTF-8
      */
     content_type(value: "JSON" | "XML"): PostEntity;
+}
+export declare class PostFile extends Operation {
+    constructor(targetProcess: TargetProcess);
+    withFiles(...paths: Array<string>): this;
+    withTicketID(id: number): this;
 }
 export declare class DeleteEntity extends Operation {
     constructor(targetProcess: TargetProcess, entity: EntityType, id: number);

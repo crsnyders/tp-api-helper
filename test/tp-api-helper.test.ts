@@ -1,19 +1,20 @@
 import { TargetProcess, Results, PostFile } from "../src/tp-api-helper"
 import * as _ from "lodash"
-
-let serviceToken = ""
-let instanceUrl = "md5.tpondemand.com"
+var settings = require("./settings.json")
+let dir = process.cwd()
 
 describe("Dummy test", () => {
   let t: TargetProcess
 
   beforeAll(() => {
-    t = new TargetProcess(instanceUrl, "https", 1, { token: serviceToken })
+    t = new TargetProcess(settings.instanceUrl, "https", 1, {
+      token: settings.serviceToken
+    })
   })
 
-  it("Test get with skip, take, format, orderby and where", () => {
+  it("Test get with skip, take, format, orderby and where", next => {
     t
-      .get("Assignables")
+      .get("Generals")
       .exclude("Id")
       .include("Id", "Name", "EntityState", "EntityState[NextStates]")
       .skip(2)
@@ -26,14 +27,18 @@ describe("Dummy test", () => {
         if (_.get(result, "Items")) {
           expect((result as Results).Items.length).toBeTruthy()
         }
+        console.log(result)
+        next()
       })
       .catch(err => {
         console.log(JSON.stringify(err))
+        next()
       })
   })
-  it("Test get with take, orderbydesc, appen", () => {
+
+  it("Test get with take, orderbydesc, appen", next => {
     t
-      .get("Assignables")
+      .get("Generals")
       .include("Id")
       .exclude("Id")
       .take(1)
@@ -43,10 +48,12 @@ describe("Dummy test", () => {
       .then(result => {
         if (_.get(result, "Items")) {
           expect((result as Results).Items.length).toEqual(1)
+          next()
         }
       })
       .catch(err => {
         console.log(JSON.stringify(err))
+        next()
       })
   })
 
@@ -64,16 +71,20 @@ describe("Dummy test", () => {
     expect(t.options).toBeTruthy()
   })
 
-  it("Upload a file to TP", () => {
-    t.postFile().withFiles("./testfile.txt").withTicketID(49397)
+  it("Upload a file to TP", next => {
     t
+      .postFile()
+      .withFiles(dir + "/test/testfile.txt", dir + "/test/testfile2.txt")
+      .withTicketID(49397)
       .execute()
       .then(result => {
-        console.log(result)
+        console.log("sucessfull upload", result)
         expect(result).toBeTruthy()
+        next()
       })
       .catch(err => {
-        console.console(err)
+        console.error("failed to upload", err)
+        next()
       })
   })
 })
