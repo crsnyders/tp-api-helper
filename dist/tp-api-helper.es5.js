@@ -1,7 +1,8 @@
+import request from 'request';
 import fs from 'fs';
 
 function unwrapExports (x) {
-	return x && x.__esModule ? x['default'] : x;
+	return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, 'default') ? x['default'] : x;
 }
 
 function createCommonjsModule(fn, module) {
@@ -9,8 +10,8 @@ function createCommonjsModule(fn, module) {
 }
 
 var tpApiHelper = createCommonjsModule(function (module, exports) {
-"use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+
 
 class TargetProcess {
     constructor(domain, protocol, version, auth) {
@@ -77,7 +78,7 @@ class TargetProcess {
                     resolve(body);
                 }
             };
-            return new Request(this.options);
+            return new request.Request(this.options);
         });
     }
 }
@@ -291,5 +292,5 @@ var tpApiHelper_4 = tpApiHelper.PostEntity;
 var tpApiHelper_5 = tpApiHelper.PostFile;
 var tpApiHelper_6 = tpApiHelper.DeleteEntity;
 
-export { tpApiHelper_1 as TargetProcess, tpApiHelper_2 as Operation, tpApiHelper_3 as GetEntity, tpApiHelper_4 as PostEntity, tpApiHelper_5 as PostFile, tpApiHelper_6 as DeleteEntity };export default tpApiHelper$1;
-//# sourceMappingURL=tp-api-helper.es5.js.map
+export default tpApiHelper$1;
+export { tpApiHelper_6 as DeleteEntity, tpApiHelper_3 as GetEntity, tpApiHelper_2 as Operation, tpApiHelper_4 as PostEntity, tpApiHelper_5 as PostFile, tpApiHelper_1 as TargetProcess };

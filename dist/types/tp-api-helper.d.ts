@@ -17,7 +17,7 @@ export interface Results {
     Items: Array<Entity>;
 }
 export interface Attachment {
-    resourceType: 'Attachment';
+    resourceType: "Attachment";
     id: number;
     name: string;
     uniqueFileName: string;
@@ -26,7 +26,7 @@ export interface Attachment {
     date: string;
     uri: string;
     thumbnailUri: string;
-    mimeType: 'text/plain';
+    mimeType: "text/plain";
     size: number;
     owner: [unknown];
     general: [unknown];

@@ -7,18 +7,32 @@ const camelCase = require('lodash.camelcase')
 const libraryName = 'tp-api-helper'
 
 export default {
-  entry: `compiled/${libraryName}.js`,
-  targets: [
-	  { dest: pkg.main, moduleName: camelCase(libraryName), format: 'umd' },
-	  { dest: pkg.module, format: 'es' }
+  input: `compiled/${libraryName}.js`,
+  output:[
+    {
+      name : "Targetprocess",
+      file: pkg.main,
+      format: 'umd',
+      globals: {
+        'fs' :'fs', 
+        'request': 'request'
+      }
+    },
+    {
+      file: pkg.module,
+      format: 'esm',
+      globals: {
+        'fs' :'fs', 
+        'request': 'request'
+      }
+    }
   ],
-  sourceMap: true,
   // Indicate here external modules you don't wanna include in your bundle (i.e.: 'lodash')
-  external: ['fs','lodash'],
-  globals: ['fs'],
+  external: ['fs', 'request'],
   plugins: [
     // Allow bundling cjs modules (unlike webpack, rollup doesn't understand cjs)
     commonjs(),
+    
     // Allow node_modules resolution, so you can use 'external' to control
     // which external modules to include in the bundle
     // https://github.com/rollup/rollup-plugin-node-resolve#usage
