@@ -64,12 +64,9 @@ export class TargetProcess {
     public version: number,
     public auth: PasswordAuth | TokenAuth
   ) {
-    this.options.url = () => {
-      if (!this.options.isAPI) {
-        return this.protocol + "://" + this.domain
-      }
-      return this.protocol + "://" + this.domain + "/api/v" + this.version
-    }
+    this.options.url = !this.options.isAPI
+      ? this.protocol + "://" + this.domain
+      : this.protocol + "://" + this.domain + "/api/v" + this.version
 
     if (
       auth &&
@@ -143,10 +140,10 @@ export class Operation extends TargetProcess {
       targetProcess.auth
     )
     this.options.entity = entity
-    this.options.url = this.options.url() + "/" + this.options.entity
+    this.options.url = this.options.url + "/" + this.options.entity
     if (id) {
       this.options.entityId = id
-      this.options.url = this.options.url() + "/" + this.options.entityId
+      this.options.url = this.options.url + "/" + this.options.entityId
     }
     this.options.method = method
 

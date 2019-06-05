@@ -25,12 +25,7 @@ class TargetProcess {
             headers: { authorization: undefined },
             url: undefined
         };
-        this.options.url = () => {
-            if (!this.options.isAPI) {
-                return this.protocol + "://" + this.domain;
-            }
-            return this.protocol + "://" + this.domain + "/api/v" + this.version;
-        };
+        this.options.url = !this.options.isAPI ? this.protocol + "://" + this.domain : this.protocol + "://" + this.domain + "/api/v" + this.version;
         if (auth &&
             this.auth.username &&
             this.auth.password) {
@@ -87,10 +82,10 @@ class Operation extends TargetProcess {
     constructor(targetProcess, entity, method, id) {
         super(targetProcess.domain, targetProcess.protocol, targetProcess.version, targetProcess.auth);
         this.options.entity = entity;
-        this.options.url = this.options.url() + "/" + this.options.entity;
+        this.options.url = this.options.url + "/" + this.options.entity;
         if (id) {
             this.options.entityId = id;
-            this.options.url = this.options.url() + "/" + this.options.entityId;
+            this.options.url = this.options.url + "/" + this.options.entityId;
         }
         this.options.method = method;
         if (this.options.headers.authorization) {
