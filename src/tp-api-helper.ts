@@ -55,7 +55,8 @@ export class TargetProcess {
     json: true,
     qs: { token: undefined, access_token: undefined },
     headers: { authorization: undefined },
-    url: undefined
+    url: undefined,
+    isAPI: true
   }
 
   constructor(
@@ -64,9 +65,9 @@ export class TargetProcess {
     public version: number,
     public auth: PasswordAuth | TokenAuth
   ) {
-    this.options.url = !this.options.isAPI
-      ? this.protocol + "://" + this.domain
-      : this.protocol + "://" + this.domain + "/api/v" + this.version
+    this.options.url = this.options.isAPI
+      ? this.protocol + "://" + this.domain + "/api/v" + this.version
+      : this.protocol + "://" + this.domain
 
     if (
       auth &&
