@@ -23,12 +23,9 @@ class TargetProcess {
             json: true,
             qs: { token: undefined, access_token: undefined },
             headers: { authorization: undefined },
-            url: undefined,
-            isAPI: true
+            url: undefined
         };
-        this.options.url = this.options.isAPI
-            ? this.protocol + "://" + this.domain + "/api/v" + this.version
-            : this.protocol + "://" + this.domain;
+        this.options.url = this.protocol + "://" + this.domain + "/api/v" + this.version;
         if (auth &&
             this.auth.username &&
             this.auth.password) {
@@ -253,7 +250,7 @@ exports.PostEntity = PostEntity;
 class PostFile extends Operation {
     constructor(targetProcess) {
         super(targetProcess, "UploadFile.ashx", "POST");
-        this.options.isAPI = false;
+        this.options.url = this.protocol + "://" + this.domain + "/UploadFile.ashx";
     }
     withFiles(...paths) {
         if (!this.options.formData) {

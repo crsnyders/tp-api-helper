@@ -57,8 +57,8 @@ describe("Dummy test", () => {
       })
   })
 
-  it("test post with include, exclude, format content_type, with body", () => {
-    t
+  it("test post with include, exclude, format content_type, with body", (next) => {
+    let postAction = t
       .post("Assignables")
       .exclude("Id")
       .include("Id")
@@ -68,23 +68,21 @@ describe("Dummy test", () => {
       .content_type("JSON")
       .withBody("test")
 
-    expect(t.options).toBeTruthy()
+    expect(postAction.options).toBeTruthy()
+    expect(postAction.options.url).toEqual(`https://${settings.instanceUrl}/api/v1/Assignables`)
+    next()
   })
 
   it("Upload a file to TP", next => {
-    t
+    var postFile = t
       .postFile()
       .withFiles(dir + "/test/testfile.txt", dir + "/test/testfile2.txt")
       .withTicketID(49397)
-      .execute()
-      .then(result => {
-        console.log("sucessfull upload", result)
-        expect(result).toBeTruthy()
-        next()
-      })
-      .catch(err => {
-        console.error("failed to upload", err)
-        next()
-      })
+
+      expect(postFile.options.url).toEqual(`https://${settings.instanceUrl}/UploadFile.ashx`)
+      expect(postFile.options.formData).toBeTruthy();
+      expect(postFile.options.formData['generalId']).toEqual(49397);
+      expect(postFile.options.formData['attachments'].length).toEqual(2);
+      next()
   })
 })

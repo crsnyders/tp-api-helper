@@ -1,6 +1,6 @@
 {
   "name": "tp-api-helper",
-  "version": "1.2.4",
+  "version": "1.2.5",
   "description": "",
   "keywords": [],
   "main": "dist/tp-api-helper.umd.js",
