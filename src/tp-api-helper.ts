@@ -1,4 +1,4 @@
-var request = require("request")
+let request = require("request")
 import * as fs from "fs"
 
 export type EntityType =
@@ -14,6 +14,8 @@ export type EntityType =
   | "Generals"
   | "Projects"
   | "EntityStates"
+  | "Comments"
+  | "Attachments"
 
 export interface PasswordAuth {
   username?: string
@@ -24,8 +26,10 @@ export interface TokenAuth {
   access_token?: string
 }
 export interface Entity {
+  Id: number
   ResourceType: EntityType
-  EntityType: any
+  EntityType: unknown
+  Name: string
 }
 export interface Results {
   Next?: string
@@ -33,13 +37,15 @@ export interface Results {
   Items: Array<Entity>
 }
 
+/**
+ * Date in format : '/Date(1559577661000+0200)/'
+ */
 export interface Attachment {
   resourceType: "Attachment"
   id: number
   name: string
   uniqueFileName: string
   description: string
-  /**'/Date(1559577661000+0200)/' */
   date: string
   uri: string
   thumbnailUri: string
@@ -64,7 +70,8 @@ export class TargetProcess {
     public version: number,
     public auth: PasswordAuth | TokenAuth
   ) {
-    this.options.url = this.protocol + "://" + this.domain + "/api/v" + this.version;
+    this.options.url =
+      this.protocol + "://" + this.domain + "/api/v" + this.version
 
     if (
       auth &&
@@ -306,7 +313,7 @@ export class PostEntity extends Operation {
 export class PostFile extends Operation {
   constructor(targetProcess: TargetProcess) {
     super(targetProcess, "UploadFile.ashx", "POST")
-    this.options.url =  this.protocol + "://" + this.domain+"/UploadFile.ashx";
+    this.options.url = this.protocol + "://" + this.domain + "/UploadFile.ashx"
   }
 
   withFiles(...paths: Array<string>) {

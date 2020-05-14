@@ -1,4 +1,4 @@
-export declare type EntityType = "UserStories" | "Bugs" | "Builds" | "Epics" | "Features" | "Tasks" | "Requesters" | "Users" | "Assignables" | "Generals" | "Projects" | "EntityStates";
+export declare type EntityType = "UserStories" | "Bugs" | "Builds" | "Epics" | "Features" | "Tasks" | "Requesters" | "Users" | "Assignables" | "Generals" | "Projects" | "EntityStates" | "Comments" | "Attachments";
 export interface PasswordAuth {
     username?: string;
     password?: string;
@@ -8,21 +8,25 @@ export interface TokenAuth {
     access_token?: string;
 }
 export interface Entity {
+    Id: number;
     ResourceType: EntityType;
-    EntityType: any;
+    EntityType: unknown;
+    Name: string;
 }
 export interface Results {
     Next?: string;
     Prev?: string;
     Items: Array<Entity>;
 }
+/**
+ * Date in format : '/Date(1559577661000+0200)/'
+ */
 export interface Attachment {
     resourceType: "Attachment";
     id: number;
     name: string;
     uniqueFileName: string;
     description: string;
-    /**'/Date(1559577661000+0200)/' */
     date: string;
     uri: string;
     thumbnailUri: string;
